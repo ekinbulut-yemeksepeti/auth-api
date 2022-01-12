@@ -13,7 +13,6 @@ func (h *Handler) CreateJWTToken(w http.ResponseWriter, r *http.Request) {
 
 	var authentication authentication.Authentication
 	if err := json.NewDecoder(r.Body).Decode(&authentication); err != nil {
-
 		sendErrorResponse(w, "Failed to decode JSON body", err)
 	}
 
@@ -22,12 +21,7 @@ func (h *Handler) CreateJWTToken(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, "Failed to create JSON", err)
 	}
 
-	tokens := map[string]string{
-		"access_token":  token.AccessToken,
-		"refresh_token": token.RefreshToken,
-	}
-
-	if err := json.NewEncoder(w).Encode(tokens); err != nil {
+	if err := json.NewEncoder(w).Encode(token); err != nil {
 		panic(err)
 	}
 }

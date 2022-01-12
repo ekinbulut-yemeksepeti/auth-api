@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ekinbulut-yemeksepeti/auth-api/internal/authentication"
+	"github.com/ekinbulut-yemeksepeti/auth-api/internal/token"
 
 	transportHTTP "github.com/ekinbulut-yemeksepeti/auth-api/internal/transport/http"
 	log "github.com/sirupsen/logrus"
@@ -28,9 +29,9 @@ func (app *App) Run() error {
 			"AppVersion": app.version,
 		}).Info("Setting Up Our APP")
 
-		
-	// initiliation of auth service
-	authService := authentication.NewService()
+	// initilize services
+	tokenService := token.NewService()
+	authService := authentication.NewService(tokenService)
 
 	// creating handler with dependencies
 	handler := transportHTTP.NewHandler(authService)

@@ -1,15 +1,12 @@
 package authentication
 
 import (
-	"os"
-	"time"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/twinj/uuid"
+	"github.com/ekinbulut-yemeksepeti/auth-api/internal/token"
 )
 
 type Service struct {
-	// database instance
+	// you can depend on a database instance
+	token *token.Service
 }
 
 type Authentication struct {
@@ -17,76 +14,31 @@ type Authentication struct {
 	Password string
 }
 
-type TokenDetails struct {
-	AccessToken  string
-	RefreshToken string
-	AccessUuid   string
-	RefreshUuid  string
-	AtExpires    int64
-	RtExpires    int64
-}
-
 type AuthenticationService interface {
-	CreateJWTToken(a *Authentication) (string, error)
+	CreateJWTToken(a *Authentication) (map[string]string, error)
 }
 
-func NewService() *Service {
-	return &Service{}
+func NewService(token *token.Service) *Service {
+	return &Service{
+		token: token,
+	}
 }
 
-func (s *Service) CreateJWTToken(a *Authentication) (*TokenDetails, error) {
+func (s *Service) CreateJWTToken(a *Authentication) (map[string]string, error) {
 
-	td := &TokenDetails{}
-	td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
-	td.AccessUuid = uuid.NewV4().String()
 
-	td.RtExpires = time.Now().Add(time.Hour * 24 * 7).Unix()
-	td.RefreshUuid = uuid.NewV4().String()
+	// TODO : check if user exists and valid password
+	// TODO : get claims from database of the user
 
-	var err error
-	//Creating Access Token
-	td.AccessToken, err = createAccessToken(a.Username)
+	token, err := s.token.CreateJWTToken(a.Username)
 	if err != nil {
 		return nil, err
 	}
 
-	//Creating Refresh Token
-	td.RefreshToken, err = createRefreshToken(a.Username, td)
-	if err != nil {
-		return nil, err
+	tokens := map[string]string{
+		"access_token":  token.AccessToken,
+		"refresh_token": token.RefreshToken,
 	}
 
-	return td, nil
-}
-
-func createAccessToken(username string) (string, error) {
-	var err error
-	//Creating Access Token
-	os.Setenv("ACCESS_SECRET", "jdnfksdmfksd") //this should be in an env file
-
-	atClaims := jwt.MapClaims{}
-	atClaims["authorized"] = true
-	atClaims["user_id"] = username
-	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
-
-	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
-	token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
-	if err != nil {
-		return "", err
-	}
-	return token, nil
-}
-
-func createRefreshToken(username string, td *TokenDetails) (string, error) {
-	os.Setenv("REFRESH_SECRET", "mcmvmkmsdnfsdmfdsjf") //this should be in an env file
-	rtClaims := jwt.MapClaims{}
-	rtClaims["refresh_uuid"] = td.RefreshUuid
-	rtClaims["user_id"] =  username
-	rtClaims["exp"] = td.RtExpires
-	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
-	refreshToken, err := rt.SignedString([]byte(os.Getenv("REFRESH_SECRET")))
-	if err != nil {
-		return "", err
-	}
-	return refreshToken, err
+	return tokens, nil
 }
