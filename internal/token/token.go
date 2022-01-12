@@ -57,7 +57,6 @@ func (s *Service) CreateJWTToken(username string) (*TokenDetails, error) {
 func createAccessToken(username string) (string, error) {
 	var err error
 	//Creating Access Token
-	os.Setenv("ACCESS_SECRET", "jdnfksdmfksd") //this should be in an env file
 
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
@@ -73,7 +72,7 @@ func createAccessToken(username string) (string, error) {
 }
 
 func createRefreshToken(username string, td *TokenDetails) (string, error) {
-	os.Setenv("REFRESH_SECRET", "mcmvmkmsdnfsdmfdsjf") //this should be in an env file
+
 	rtClaims := jwt.MapClaims{}
 	rtClaims["refresh_uuid"] = td.RefreshUuid
 	rtClaims["user_id"] = username

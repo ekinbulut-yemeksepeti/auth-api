@@ -27,10 +27,23 @@ func NewHandler(service *authentication.Service) *Handler {
 	}
 }
 
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.WithFields(
+			log.Fields{
+				"Method": r.Method,
+				"Path":   r.URL.Path,
+			}).
+			Info("handled request")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (h *Handler) SetupRoutes() {
 	log.Info("Setting up routes...")
 
 	h.Router = mux.NewRouter()
+	h.Router.Use(LoggingMiddleware)
 
 	h.Router.HandleFunc("/api/token", h.CreateJWTToken).Methods("POST")
 
