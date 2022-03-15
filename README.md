@@ -1,4 +1,4 @@
-# auth-api
+# Auth-api
 
 
 Design implementation of a production ready api. Just a template.
